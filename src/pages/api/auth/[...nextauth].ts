@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
+
 import { query as q } from "faunadb";
 
 import { fauna } from "../../../services/faunaDB";
@@ -12,8 +13,11 @@ export const authOptions = {
       clientSecret: process.env.GITHUB_SECRET,
       authorization: { params: { scope: "read:user" } },
     }),
-    // ...add more providers here
   ],
+  jwt: {
+    secret: process.env.JWT_SIGNING_KEY,
+    signingAlgorithm: "HS512",
+  },
 
   callbacks: {
     async signIn({ user, account, profile, credentials }) {
