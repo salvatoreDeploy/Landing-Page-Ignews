@@ -20,7 +20,11 @@ export const config = {
   },
 };
 
-const relevantEvents = new Set(["checkout.session.completed"]);
+const relevantEvents = new Set([
+  "checkout.session.completed",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+]);
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === "POST") {
@@ -45,13 +49,25 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     if (relevantEvents.has(type)) {
       try {
         switch (type) {
+          case "customer.subscription.updated":
+          case "customer.subscription.deleted":
+            const subscription = event.data.object as Stripe.Subscription;
+
+            await saveSubscription(
+              subscription.id,
+              subscription.customer.toString(),
+              false
+            );
+
+            break;
           case "checkout.session.completed":
             const checkoutSession = event.data
               .object as Stripe.Checkout.Session;
 
             await saveSubscription(
               checkoutSession.subscription.toString(),
-              checkoutSession.customer.toString()
+              checkoutSession.customer.toString(),
+              true
             );
 
             break;
@@ -71,15 +87,14 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 };
 
 /* 
-  Função de retorno padrão para uma API do Next.js. A função aceita um pedido e uma resposta da API como parâmetros. 
-  Se o método for "POST", a função começa a executar o código. 
-  Primeiro, ela usa a função buffer() para ler os dados do pedido e armazená-los em um buffer. 
-  Em seguida, ela obtém o segredo do cabeçalho "stripe-signature" e usa a função stripe.webhooks.constructEvent() 
-  para construir um evento Stripe com os dados lidos e o segredo recebido.
-  A variável relevantEvents é um conjunto contendo o evento "checkout.session.completed". 
-  Se o tipo de evento coincidir com esse evento, a função executará a lógica necessária para salvar a assinatura e o cliente na base de dados. 
-  Por fim, ela retornará uma resposta JSON indicando que o pedido foi recebido com sucesso. Se nenhum dos eventos relevantes for encontrado, 
-  será lançada uma exceção informando que nenhum manipulador foi encontrado para esse tipo de evento. 
-  Se o método não for "POST", será enviada uma resposta HTTP 405 indicando que esse método não é permitido na rota da API atualmente em execução.
-
+  Este código é uma função de retorno padrão para uma API Next.js. 
+  Ela é chamada quando um cliente faz uma solicitação POST para a API. 
+  A função começa verificando se a solicitação é do tipo POST. Se for, 
+  ela usa o método buffer() para ler os dados da solicitação e armazená-los em um buffer. 
+  Em seguida, ela obtém o segredo da header da solicitação e tenta construir um evento Stripe usando os dados do buffer e a secret.
+  Se a construção do evento for bem-sucedida, ela verificará se o tipo de evento está contido no conjunto relevantEvents. 
+  Se estiver, ela executará um bloco switch com base no tipo de evento para salvar as informações relevantes na base de dados. 
+  Por fim, ela envia uma resposta JSON com o status recebido com sucesso. 
+  Se a solicitação não for do tipo POST, ela definirá o cabeçalho Allow com o método POST permitido e 
+  enviará uma resposta 405 (Método não permitido).
 */
