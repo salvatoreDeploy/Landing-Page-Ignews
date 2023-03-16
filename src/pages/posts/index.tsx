@@ -1,10 +1,23 @@
+/* eslint-disable react/jsx-key */
 import { GetStaticProps } from "next";
 import Head from "next/head";
 import { getPrismicClient } from "../../services/prismic";
 import * as Prismic from "@prismicio/client";
 import styles from "./styles.module.scss";
+import { RichText } from "prismic-dom";
 
-export default function Posts() {
+type Post = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  updateAt: string;
+};
+
+interface PostProps {
+  posts: Post[];
+}
+
+export default function Posts({ posts }: PostProps) {
   return (
     <>
       <Head>
@@ -13,32 +26,13 @@ export default function Posts() {
 
       <main className={styles.container}>
         <div className={styles.posts}>
-          <a href="#">
-            <time>07 Março de 2023</time>
-            <strong>Creating a Monorepo with Lerna & Yarn Workspaces</strong>
-            <p>
-              In this guide, you will learn how to create a Monorepo to manage
-              multiple packages with a shared build, test, and release process.
-            </p>
-          </a>
-
-          <a href="#">
-            <time>07 Março de 2023</time>
-            <strong>Creating a Monorepo with Lerna & Yarn Workspaces</strong>
-            <p>
-              In this guide, you will learn how to create a Monorepo to manage
-              multiple packages with a shared build, test, and release process.
-            </p>
-          </a>
-
-          <a href="#">
-            <time>07 Março de 2023</time>
-            <strong>Creating a Monorepo with Lerna & Yarn Workspaces</strong>
-            <p>
-              In this guide, you will learn how to create a Monorepo to manage
-              multiple packages with a shared build, test, and release process.
-            </p>
-          </a>
+          {posts.map((post) => (
+            <a key={post.slug} href="#">
+              <time>{post.updateAt}</time>
+              <strong>{post.title}</strong>
+              <p>{post.excerpt}</p>
+            </a>
+          ))}
         </div>
       </main>
     </>
@@ -55,9 +49,27 @@ export const getStaticProps: GetStaticProps = async () => {
 
   //console.log(response);
 
-  const posts = response.map((post) => {});
+  const posts = response.map((post) => {
+    return {
+      slug: post.uid,
+      title: RichText.asText(post.data.title),
+      excerpt:
+        post.data.content.find((content) => content.type === "paragraph")
+          ?.text ?? "",
+      updateAt: new Date(post.last_publication_date).toLocaleTimeString(
+        "pt-BR",
+        {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }
+      ),
+    };
+  });
 
   return {
-    props: {},
+    props: {
+      posts,
+    },
   };
 };
