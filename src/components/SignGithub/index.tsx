@@ -15,8 +15,8 @@ export function SignGithub() {
       onClick={() => signOut()}
       className={styles.signButton}
     >
-      <img src={session.user.image} alt="" />
-      {session.user.name}
+      <img src={session?.user?.image} alt="" />
+      {session?.user?.name}
       <FiX color="#737380" className={styles.closedIcon} />
     </button>
   ) : (
