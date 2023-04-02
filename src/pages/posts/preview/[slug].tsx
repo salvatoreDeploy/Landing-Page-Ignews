@@ -52,9 +52,15 @@ export default function PreviewPost({ post }: PreviewPostProps) {
   );
 }
 
-export const getStaticPaths: GetStaticPaths = () => {
+export const getStaticPaths: GetStaticPaths = async () => {
   return {
-    paths: [],
+    paths: [
+      {
+        params: {
+          slug: "descubra-como-o-node.js-se-tornou-uma-das-tecnologias",
+        },
+      },
+    ],
     fallback: "blocking",
   };
 };
@@ -85,5 +91,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     props: {
       post,
     },
+    revalidate: 60 * 30, // 30 minutes
   };
 };
