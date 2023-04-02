@@ -5,6 +5,7 @@ import { Get, query as q } from "faunadb";
 
 import { fauna } from "../../../services/faunaDB";
 
+
 export const authOptions = {
   // Configure one or more authentication providers
   providers: [
@@ -32,7 +33,7 @@ export const authOptions = {
                   q.Get(
                     q.Match(
                       q.Index("user_by_email"),
-                      q.Casefold(session.user?.email)
+                      q.Casefold(session.user?.email as string)
                     )
                   )
                 )
@@ -45,14 +46,14 @@ export const authOptions = {
           ...session,
           activeSubscription: userActiveSubscription,
         };
-      } catch (error) {
-        console.log(error);
+      } catch {
         return {
           ...session,
           activeSubscription: null,
         };
       }
     },
+
     async signIn({ user, account, profile, credentials }) {
       const { email } = user;
       try {
