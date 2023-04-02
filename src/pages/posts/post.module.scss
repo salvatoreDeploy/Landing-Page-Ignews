@@ -9,7 +9,7 @@
   margin: 5rem auto 0;
 
   h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 900;
   }
 
@@ -23,7 +23,7 @@
   .postContent {
     margin-top: 2rem;
     line-height: 2rem;
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: var(--gray-100);
 
     p,
@@ -37,6 +37,31 @@
       li {
         margin: 0.5rem 0;
       }
+    }
+
+    &.previewPostContent {
+      background: linear-gradient(var(--gray-100), transparent);
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+}
+
+.continuesReading {
+  padding: 1rem;
+  text-align: center;
+  background: var(--gray-850);
+  border-radius: 100px;
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 4rem 0 2rem;
+
+  a {
+    color: var(--yellow-500);
+    margin: 0.25rem;
+
+    &:hover {
+      text-decoration: underline;
     }
   }
 }

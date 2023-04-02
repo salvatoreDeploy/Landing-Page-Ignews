@@ -1,11 +1,14 @@
-import { GetServerSideProps } from "next";
-import { getSession } from "next-auth/react";
+import { GetStaticPaths, GetStaticProps } from "next";
+import { useSession } from "next-auth/react";
 import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { RichText } from "prismic-dom";
-import { getPrismicClient } from "../../services/prismic";
-import styles from "./post.module.scss";
+import { useEffect } from "react";
+import { getPrismicClient } from "../../../services/prismic";
+import styles from "../post.module.scss";
 
-interface PostProps {
+interface PreviewPostProps {
   post: {
     slug: string;
     title: string;
@@ -14,7 +17,16 @@ interface PostProps {
   };
 }
 
-export default function Post({ post }: PostProps) {
+export default function PreviewPost({ post }: PreviewPostProps) {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (session?.activeSubscription) {
+      router.push(`/posts`);
+    }
+  }, [session, router]);
+
   return (
     <>
       <Head>
@@ -25,32 +37,32 @@ export default function Post({ post }: PostProps) {
           <h1>{post.title}</h1>
           <time>{post.updateAt}</time>
           <div
-            className={styles.postContent}
+            className={`${styles.postContent} ${styles.previewPostContent}`}
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
+          <div className={styles.continuesReading}>
+            Wanna continue Reading?
+            <Link href="/">
+              <a href="">Subscribe Now 🤗</a>
+            </Link>
+          </div>
         </article>
       </main>
     </>
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async ({
-  req,
-  params,
-}) => {
-  const session = await getSession({ req });
+export const getStaticPaths: GetStaticPaths = () => {
+  return {
+    paths: [],
+    fallback: "blocking",
+  };
+};
+
+export const getStaticProps: GetStaticProps = async ({ params }) => {
   const slug = params;
 
   //console.log(session.activeSubscription);
-
-  if (!session?.activeSubscription) {
-    return {
-      redirect: {
-        destination: `/posts/preview/${params?.slug}`,
-        permanent: false,
-      },
-    };
-  }
 
   const prismic = getPrismicClient();
   const response = await prismic.getByUID("post", String(params?.slug), {});
